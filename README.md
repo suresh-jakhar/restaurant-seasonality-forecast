@@ -102,4 +102,4 @@ All Excel files were manually reviewed and compiled. Interactive charts were add
 
 
 
-### This project was conceptualized, built, and executed by **Suresh Jakhar**, using publicly available Python libraries and Excel for final reporting.  The work was completed as part of a data analysis and forecasting assignment focused on restaurant performance optimization.
+## This project was conceptualized, built, and executed by **Suresh Jakhar**, using publicly available Python libraries and Excel for final reporting.  The work was completed as part of a data analysis and forecasting assignment focused on restaurant performance optimization.
