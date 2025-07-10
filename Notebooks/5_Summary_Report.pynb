@@ -1,0 +1,133 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "12459496-38a7-4558-b101-03099833828b",
+   "metadata": {},
+   "source": [
+    "## Slide Deck Summary Report"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "c021b420-8ff7-41b3-9eae-bbaee22f9271",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Slide-style summary saved to 'Slide_Deck_Summary_Report.xlsx'\n"
+     ]
+    }
+   ],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "\n",
+    "\n",
+    "scores = pd.read_excel('Seasonality_Scores.xlsx')\n",
+    "indices = pd.read_excel('Monthly_Seasonality_Indices.xlsx')\n",
+    "\n",
+    "\n",
+    "peak_months = (\n",
+    "    indices.sort_values(['Restaurant Name', 'Seasonality Index'], ascending=False)\n",
+    "    .groupby('Restaurant Name')\n",
+    "    .head(2)\n",
+    "    .groupby('Restaurant Name')['Month']\n",
+    "    .apply(lambda x: ', '.join(pd.to_datetime(x, format='%m').dt.strftime('%b')))\n",
+    "    .reset_index()\n",
+    "    .rename(columns={'Month': 'Peak Months'})\n",
+    ")\n",
+    "\n",
+    "\n",
+    "\n",
+    "summary = pd.merge(scores, peak_months, on='Restaurant Name', how='left')\n",
+    "\n",
+    "def safe_suggest_action(row):\n",
+    "    score = row['Seasonality Score']\n",
+    "    months = row['Peak Months']\n",
+    "\n",
+    "    if pd.isna(score) or pd.isna(months):\n",
+    "        return \"Insufficient data\"\n",
+    "\n",
+    "    score = int(score)\n",
+    "    if score >= 4:\n",
+    "        return f\"Heavy variability — staff up in {months}, promote during lows.\"\n",
+    "    elif score == 3:\n",
+    "        return f\"Moderate swings — prepare lightly for {months} peaks.\"\n",
+    "    else:\n",
+    "        return f\"Stable venue — focus on upselling and loyalty programs.\"\n",
+    "\n",
+    "summary['Suggested Action'] = summary.apply(safe_suggest_action, axis=1)\n",
+    "\n",
+    "\n",
+    "\n",
+    "overview = {\n",
+    "    \"Topic\": [\n",
+    "        \"Total Venues Analyzed\",\n",
+    "        \"Data Range\",\n",
+    "        \"Avg Seasonality Score\",\n",
+    "        \"High Seasonality Venues\",\n",
+    "        \"Stable Venues\",\n",
+    "        \"Forecast Scope\"\n",
+    "    ],\n",
+    "    \"Insight\": [\n",
+    "        len(summary),\n",
+    "        \"From earliest Go Live to latest transaction (daily granularity)\",\n",
+    "        round(summary['Seasonality Score'].mean(), 2),\n",
+    "        (summary['Seasonality Score'] >= 4).sum(),\n",
+    "        (summary['Seasonality Score'] == 1).sum(),\n",
+    "        \"Revenue prediction for next 6 months\"\n",
+    "    ]\n",
+    "}\n",
+    "overview_df = pd.DataFrame(overview)\n",
+    "\n",
+    "\n",
+    "top_high = summary[summary['Seasonality Score'] >= 4].sort_values('Seasonality Score', ascending=False).head(10)\n",
+    "\n",
+    "\n",
+    "top_stable = summary[summary['Seasonality Score'] == 1].head(10)\n",
+    "\n",
+    "\n",
+    "with pd.ExcelWriter('Slide_Deck_Summary_Report.xlsx') as writer:\n",
+    "    overview_df.to_excel(writer, sheet_name='Executive Overview', index=False)\n",
+    "    top_high.to_excel(writer, sheet_name='Top 10 High Seasonality', index=False)\n",
+    "    top_stable.to_excel(writer, sheet_name='Top 10 Stable Venues', index=False)\n",
+    "    summary.to_excel(writer, sheet_name='All Venue Insights', index=False)\n",
+    "\n",
+    "print(\"Slide-style summary saved to 'Slide_Deck_Summary_Report.xlsx'\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "90338dc5-9346-4e39-8162-9a799fcc73e6",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python [conda env:base] *",
+   "language": "python",
+   "name": "conda-base-py"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.13.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
